@@ -470,6 +470,7 @@ void decode_key()
      }
      Serial.println("比较的结果:");
      print_data(choose_index, choose_len);
+     final_len = 0;
      for(int i=0; i< key_len; i++)
      {
          if (choose_index[i] != -1)
