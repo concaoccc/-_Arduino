@@ -36,8 +36,8 @@ int encode_data[] = {0};
 int encode_len = 0;
 
 // 最后的密钥数据
-//byte byte_key[32] = {0};
-//int byte_key_len = 0;
+//int byte_key[32] = {0};
+int byte_key_len = 0;
 // 
 //获得原始的RSSI
 void get_rssi()
@@ -481,21 +481,38 @@ void decode_key()
      }
 }
 // 得到最后的密钥
-//void get_byte_key()
-//{
-//  //没有byte化final_key, final_len
-//  //存储的目标 byte_key byte_key_len
-//  byte_key_len = final_len/8;
-//  for (int i=0; i<byte_key_len; i++)
-//  {
-//    byte tmp =0;
-//    for(int j=0; j < 8; j++)
-//    {
-//      tmp += final_key[i*8+j]*pow(2,j);
-//      }
-//      byte_key[i] = tmp;
-//    }
-//  }
+void get_byte_key()
+{
+  //没有byte化final_key, final_len
+  //存储的目标 byte_key byte_key_len
+  byte_key_len = final_len/8;
+  for (int i=0; i<byte_key_len; i++)
+  {
+    int tmp =0;
+    for(int j=0; j < 8; j++)
+    {
+      tmp += final_key[i*8+j]*pow(2,j);
+      }
+      key[i] = tmp;
+    }
+  }
+
+// 进行最后的数据传输
+void translate()
+{
+  for(int i=0; i< 2; i++)
+  {
+    send_data(key, byte_key_len);
+    if(get_ack())
+    {
+      Serial.println("发送成功");
+      }
+      else
+      {
+        Serial.println("发送失败");
+        }
+    }
+  }
 void setup() {
    Serial1.begin(38400); //set up serial library baud rate to 115200
    Serial.begin(115200);
@@ -565,7 +582,7 @@ void setup() {
     encode();
     Serial.print("产生的纠错编码\n");
     print_data(encode_data,encode_len);
-    Serial.print("\n");
+    Serial.print("\n"); 
     send_data(encode_data,encode_len);
     
     Serial.print("发送完纠错编码\n");
@@ -575,8 +592,11 @@ void setup() {
     Serial.print(final_len);
     Serial.print("\n");
     print_data(final_key, final_len);
-    //get_byte_key();
-    //print_data(byte_key, byte_key_len);
+    get_byte_key();
+    Serial.println("最后的密钥:");
+    print_data(key, byte_key_len);
+    send_end();
+    translate();
    digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
 }
 
